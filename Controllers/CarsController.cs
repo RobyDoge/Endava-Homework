@@ -30,4 +30,25 @@ public class CarsController(CarService service) : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpPost("/cars/{carId:long}/claims")]
+    public async Task<ActionResult<InsuranceClaimResponse>> RegisterInsuranceClaim(long carId, [FromBody] InsuranceClaimRequest request)
+    {
+        if (!DateOnly.TryParse(request.Date, out var parsed))
+            return BadRequest("Invalid date format. Use YYYY-MM-DD.");
+        if (string.IsNullOrWhiteSpace(request.Description))
+            return BadRequest("Description is required.");
+        if (request.Amount <= 0)
+            return BadRequest("Amount must be greater than zero.");
+        try
+        {
+            var registered = await _service.RegisterInsuranceClaimAsync(carId, parsed, request.Description, request.Amount);
+            return Ok(new InsuranceClaimResponse(carId, parsed.ToString("yyyy-MM-dd"), request.Description, request.Amount, registered));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
 }

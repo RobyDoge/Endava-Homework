@@ -27,4 +27,28 @@ public class CarService(AppDbContext db)
             (p.EndDate == null || p.EndDate >= date)
         );
     }
+
+    public async Task<bool> RegisterInsuranceClaimAsync(long carId, DateOnly date, string description, int amount)
+    {
+        var carExists = await _db.Cars.AnyAsync(c => c.Id == carId);
+        if (!carExists) throw new KeyNotFoundException($"Car {carId} not found");
+
+        var activePolicy = await _db.Policies
+            .Where(p => p.CarId == carId && p.StartDate <= date && p.EndDate >= date)
+            .OrderByDescending(p => p.StartDate)
+            .FirstOrDefaultAsync();
+        if (activePolicy == null) throw new InvalidOperationException($"No active insurance policy for car {carId} on {date}");
+
+        var claim = new Models.InsuranceClaim
+        {
+            CarId = carId,
+            PolicyId = activePolicy.Id,
+            Date = date,
+            Description = description,
+            Amount = amount
+        };
+        _db.Claims.Add(claim);
+        await _db.SaveChangesAsync();
+        return claim.Id > 0;
+    }
 }
