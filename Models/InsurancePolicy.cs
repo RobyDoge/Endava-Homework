@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CarInsurance.Api.Models;
 
 public class InsurancePolicy
@@ -9,5 +11,6 @@ public class InsurancePolicy
 
     public string? Provider { get; set; }
     public DateOnly StartDate { get; set; }
-    public DateOnly? EndDate { get; set; } // intentionally nullable; will be enforced later
+    [Required]
+    public DateOnly? EndDate { get; set; }
 }
