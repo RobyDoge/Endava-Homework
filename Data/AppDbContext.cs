@@ -27,7 +27,7 @@ public static class SeedData
 {
     public static void EnsureSeeded(AppDbContext db)
     {
-        //if (db.Owners.Any()) return;
+        if (db.Owners.Any()) return;
 
         var ana = new Owner { Name = "Ana Pop", Email = "ana.pop@example.com" };
         var bogdan = new Owner { Name = "Bogdan Ionescu", Email = "bogdan.ionescu@example.com" };
