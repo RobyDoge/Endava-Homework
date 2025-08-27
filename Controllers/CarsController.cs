@@ -45,9 +45,22 @@ public class CarsController(CarService service) : ControllerBase
             var registered = await _service.RegisterInsuranceClaimAsync(carId, parsed, request.Description, request.Amount);
             return Ok(new InsuranceClaimResponse(carId, parsed.ToString("yyyy-MM-dd"), request.Description, request.Amount, registered));
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException e)
         {
-            return NotFound();
+            return NotFound(e.Message);
+        }
+    }
+
+    [HttpGet("cars/{carId:long}/history")]
+    public async Task<ActionResult<List<CarHistory>>> GetCarHistory(long carId)
+    {
+        try
+        {
+            return  Ok(await _service.GetCarHistoryAsync(carId));
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
         }
     }
 

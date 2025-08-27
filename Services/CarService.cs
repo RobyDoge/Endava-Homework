@@ -51,4 +51,28 @@ public class CarService(AppDbContext db)
         await _db.SaveChangesAsync();
         return claim.Id > 0;
     }
+
+    public async Task<List<CarHistory>> GetCarHistoryAsync(long carId)
+    {
+        var carExists = await _db.Cars.AnyAsync(c => c.Id == carId);
+        if (!carExists) throw new KeyNotFoundException($"Car {carId} not found");
+        
+        var claims = await _db.Claims
+            .Where(c => c.CarId == carId)
+            .ToListAsync();
+        var policies = await _db.Policies
+            .Where(p => p.CarId == carId)
+            .ToListAsync();
+        var history = new List<CarHistory>();
+
+        foreach (var claim in claims)
+        {
+            history.Add(new CarHistory(carId, claim, null));
+        }
+        foreach (var policy in policies)
+        {
+            history.Add(new CarHistory(carId, null, policy));
+        }
+        return history.OrderBy(h => h.Claim?.Date ?? h.Policy?.StartDate ?? DateOnly.MinValue).ToList();
+    }
 }
