@@ -14,13 +14,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<Car>()
             .HasIndex(c => c.Vin)
-            .IsUnique(false); // TODO: set true and handle conflicts
+            .IsUnique();
 
         modelBuilder.Entity<InsurancePolicy>()
             .Property(p => p.StartDate)
             .IsRequired();
 
-        // EndDate intentionally left nullable for a later task
+        modelBuilder.Entity<InsurancePolicy>()
+            .Property(p => p.EndDate)
+            .IsRequired();
     }
 }
 
@@ -36,19 +38,35 @@ public static class SeedData
         db.Owners.AddRange(ana, bogdan,robert);
         db.SaveChanges();
 
-        var car1 = new Car { Vin = "VIN12345", Make = "Dacia", Model = "Logan", YearOfManufacture = 2018, OwnerId = ana.Id };
-        var car2 = new Car { Vin = "VIN67890", Make = "VW", Model = "Golf", YearOfManufacture = 2021, OwnerId = bogdan.Id };
-        var car3 = new Car { Vin = "VIN23603", Make = "VW", Model = "Polo", YearOfManufacture = 2025, OwnerId = robert.Id };
-        db.Cars.AddRange(car1, car2,car3);
-        db.SaveChanges();
+        var cars = new List<Car>
+        {
+            new() { Vin = "VIN12345", Make = "Dacia", Model = "Logan", YearOfManufacture = 2018, OwnerId = ana.Id },
+            new() { Vin = "VIN67890", Make = "VW", Model = "Golf", YearOfManufacture = 2021, OwnerId = bogdan.Id },
+            new() { Vin = "VIN12345", Make = "VW", Model = "Polo", YearOfManufacture = 2025, OwnerId = robert.Id },
+        };
+        foreach(var car in cars)
+        {
+            if(CarExists(db,car))
+                    car.Vin = "VIN" + Guid.NewGuid().ToString()[..5];
+            db.Cars.Add(car);
+            db.SaveChanges();
+        }
 
         db.Policies.AddRange(
-            new InsurancePolicy { CarId = car1.Id, Provider = "Allianz", StartDate = new DateOnly(2024,1,1), EndDate = new DateOnly(2024,12,31) },
-            new InsurancePolicy { CarId = car1.Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = new DateOnly(2025, 12,31) },
-            new InsurancePolicy { CarId = car2.Id, Provider = "Allianz", StartDate = new DateOnly(2025,3,1), EndDate = new DateOnly(2025,9,30) },
-            new InsurancePolicy { CarId = car3.Id, Provider = "Groupama", StartDate = new DateOnly(2025, 6, 23), EndDate = new DateOnly(2025, 9, 23) }
+            new InsurancePolicy { CarId = cars[0].Id, Provider = "Allianz", StartDate = new DateOnly(2024,1,1), EndDate = new DateOnly(2024,12,31) },
+            new InsurancePolicy { CarId = cars[0].Id, Provider = "Groupama", StartDate = new DateOnly(2025,1,1), EndDate = new DateOnly(2025, 12,31) },
+            new InsurancePolicy { CarId = cars[1].Id, Provider = "Allianz", StartDate = new DateOnly(2025,3,1), EndDate = new DateOnly(2025,9,30) },
+            new InsurancePolicy { CarId = cars[2].Id, Provider = "Groupama", StartDate = new DateOnly(2025, 6, 23), EndDate = new DateOnly(2025, 9, 23) }
 
         );
         db.SaveChanges();
     }
+
+    private static bool CarExists(AppDbContext db, Car newCar)
+    {
+        var existingCar = db.Cars.FirstOrDefault(c => c.Vin == newCar.Vin);
+        return existingCar != null;
+    }
 }
+
+
