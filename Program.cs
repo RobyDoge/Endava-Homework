@@ -2,6 +2,7 @@ using CarInsurance.Api.Data;
 using CarInsurance.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -10,10 +11,12 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 });
 
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<PolicyService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHostedService<InsuranceExpirationLogger>();
 
 var app = builder.Build();
 
