@@ -1,6 +1,8 @@
 using CarInsurance.Api.Dtos;
 using CarInsurance.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CarInsurance.Api.Controllers;
 
@@ -17,7 +19,7 @@ public class CarsController(CarService service) : ControllerBase
     [HttpGet("cars/{carId:long}/insurance-valid")]
     public async Task<ActionResult<InsuranceValidityResponse>> IsInsuranceValid(long carId, [FromQuery] string date)
     {
-        if (!DateOnly.TryParse(date, out var parsed))
+        if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
             return BadRequest("Invalid date format. Use YYYY-MM-DD.");
         try
         {
@@ -33,7 +35,7 @@ public class CarsController(CarService service) : ControllerBase
     [HttpPost("/cars/{carId:long}/claims")]
     public async Task<ActionResult<InsuranceClaimResponse>> RegisterInsuranceClaim(long carId, [FromBody] InsuranceClaimRequest request)
     {
-        if (!DateOnly.TryParse(request.Date, out var parsed))
+        if (!DateOnly.TryParseExact(request.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
             return BadRequest("Invalid date format. Use YYYY-MM-DD.");
         if (string.IsNullOrWhiteSpace(request.Description))
             return BadRequest("Description is required.");
