@@ -19,15 +19,14 @@ public class CarsController(CarService service) : ControllerBase
     {
         if (!DateOnly.TryParse(date, out var parsed))
             return BadRequest("Invalid date format. Use YYYY-MM-DD.");
-
         try
         {
             var valid = await _service.IsInsuranceValidAsync(carId, parsed);
             return Ok(new InsuranceValidityResponse(carId, parsed.ToString("yyyy-MM-dd"), valid));
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException e)
         {
-            return NotFound();
+            return NotFound(e.Message);
         }
     }
 
